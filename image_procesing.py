@@ -40,7 +40,12 @@ else:
     grid_size = (300, 200)
     resized_mask = cv2.resize(inverted_mask, grid_size)
 
+    resized_mask[resized_mask > 0] = 255
+
     # Save the grid as an image
     cv2.imwrite('grid_image.png', resized_mask)
+
+    resized_mask[resized_mask > 0] = 1
+    np.save('grid_image.npy', resized_mask)
 
     print("Grid image has been saved to 'grid_image.png'.")
