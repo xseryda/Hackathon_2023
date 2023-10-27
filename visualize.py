@@ -1,61 +1,69 @@
+import json
+
 import cv2
 import numpy as np
 
-def visualize_agent_path(grid_image_path, path, color='blue', transparency=0.5):
-    # Load the grid image
-    grid_image = cv2.imread(grid_image_path)
+# Define color mappings
+color_mapping = {
+    'blue': (255, 0, 0),
+    'orange': (0, 115, 255),
+    'green': (0, 255, 0),
+    'red': (0, 0, 255),
+    'black': (0, 0, 0)
+}
 
-    if grid_image is None:
-        print("Grid image not found or could not be loaded.")
-        return
 
+def visualize_agent_path(grid_image, path, color='blue', transparency=1):
     # Create a transparent overlay image
     overlay_image = grid_image.copy()
 
-    # Define color mappings
-    color_mapping = {
-        'blue': (255, 0, 0),
-        'orange': (0, 115, 255),
-        'green': (0, 255, 0),
-        'red': (0, 0, 255),
-        'black': (0, 0, 0)
-    }
+    rescale_x = grid_image.shape[0] / 200
+    rescale_y = grid_image.shape[1] / 300
+    for i in range(len(path)):
+        path[i] = [int(path[i][1] * rescale_y), int(path[i][0] * rescale_x)]
 
-    # Check if the specified color is valid
-    if color in color_mapping:
-        line_color = color_mapping[color]
-    else:
-        print("Invalid color specified. Using blue by default.")
-        line_color = color_mapping['blue']
 
     # Draw the semi-transparent path with the specified color on the overlay image
     for i in range(1, len(path)):
-        cv2.line(overlay_image, path[i - 1], path[i], line_color, 7) 
+        cv2.line(overlay_image, path[i - 1], path[i], color, 2)
 
     # Blend the overlay image with the original image
-    result_image = cv2.addWeighted(overlay_image, transparency, grid_image, 1 - transparency, 0)
+    return overlay_image
 
-    # Display the result image with the agent's semi-transparent path
-    cv2.imshow('Agent Path', result_image)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+
+def visualize_divided_grid(image, grid, no_agents, transparency=0.5):
+    mask = np.zeros((*grid.shape, 3), dtype=np.uint8)
+
+    mask[grid == 0] = color_mapping['black']
+    colors = list(color_mapping.values())
+    for i in range(no_agents):
+        mask[grid == i + 1] = colors[i]
+    mask[grid == no_agents + 1] = color_mapping['black']
+
+    mask = cv2.resize(mask, [image.shape[1], image.shape[0]])
+    # Apply the mask to the image using alpha blending
+    return cv2.addWeighted(image, 1, mask, transparency, 0)
 
 
 # Example of how to call the function with different colors:
 if __name__ == "__main__":
     grid_image_path = 'garden.png'
-    start_point = (10, 10)
-    end_point = (1000, 1000)
-    path_points = 100
-
-    # Create a list of points representing the agent's path
-    path = [(start_point[0], start_point[1])]
-    
-    # Sample path points (you should replace this with your multi-path planning logic)
-    for i in range(1, path_points + 1):
-        x = int(start_point[0] + (end_point[0] - start_point[0]) * i / path_points)
-        y = int(start_point[1] + (end_point[1] - start_point[1]) * i / path_points)
-        path.append((x, y))
+    # Load the grid image
+    grid_image = cv2.imread(grid_image_path)
+    with open("paths_2.json") as f:
+        paths = json.load(f)
 
     # Specify the color when calling the function ('blue', 'orange', 'green', 'red', or 'black')
-    visualize_agent_path(grid_image_path, path, color='blue')
+
+    colors = list(color_mapping.values())
+    for idx, path in enumerate(paths):
+        grid_image = visualize_agent_path(grid_image, path, color=colors[idx])
+
+    grid = np.load('grid_color.npy')
+
+    result_image = visualize_divided_grid(grid_image, grid, 4, 0.3)
+
+    result_image = cv2.resize(result_image, [1300, 600])
+    cv2.imshow('Agent Path', result_image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
