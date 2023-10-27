@@ -7,7 +7,7 @@ from BFS import BFS
 
 
 DRAW_STEP = 100
-NUM_AGENTS = 4
+NUM_AGENTS = 6
 
 
 class GrassState:
@@ -20,6 +20,7 @@ class Agent:
         self._id = agent_id
         self._grid = grid
         self._path = [(i, j)]
+        self._last_position = None
         self._i = i
         self._j = j
         self._unmowed = 0
@@ -57,14 +58,30 @@ class Agent:
         self._unmowed -= 1
 
     def get_next_position(self, i, j):
-        if self._grid[i, j - 1] == self.id:
-            return i, j - 1
-        if self._grid[i + 1, j] == self.id:
-            return i + 1, j
-        if self._grid[i - 1, j] == self.id:
-            return i - 1, j
-        if self._grid[i, j + 1] == self.id:
-            return i, j + 1
+        preferences = None
+        if self._last_position is None:
+            preferences = ['L', 'D', 'U', 'R']
+        if preferences is None:
+            i_last, j_last = self._last_position
+            if j_last == self.j:
+                if self.i > i_last:  # down
+                    preferences = ['L', 'D', 'R', 'U']
+                else:  # up
+                    preferences = ['R', 'U', 'L', 'D']
+            else:
+                if self.j < j_last:  # left
+                    preferences = ['U', 'L', 'D', 'R']
+                else:  # right
+                    preferences = ['D', 'R', 'U', 'L']
+        for preference in preferences:
+            if preference == 'L' and self._grid[i, j - 1] == self.id:
+                return i, j - 1
+            if preference == 'D' and self._grid[i + 1, j] == self.id:
+                return i + 1, j
+            if preference == 'U' and self._grid[i - 1, j] == self.id:
+                return i - 1, j
+            if preference == 'R' and self._grid[i, j + 1] == self.id:
+                return i, j + 1
         return None
 
     def move_to_unmowed(self):
@@ -73,6 +90,7 @@ class Agent:
         self.set_position(*path[-1])
 
     def set_position(self, i, j):
+        self._last_position = (self._i, self._j)
         self._i = i
         self._j = j
 
@@ -134,8 +152,8 @@ class CoveragePlanner:
                     agent.set_position(i, j)
                     if step % DRAW_STEP == 0:
                         img.set_data(self._grid[1:-1, 1:-1])
-                        # plt.savefig(f'pictures/{step:06d}.png')
-                        plt.pause(0.01)
+                        plt.savefig(f'pictures/{step:06d}.png')
+                        # plt.pause(0.01)
 
 
 def main():
