@@ -143,7 +143,7 @@ def main():
     #grid = plt.imread(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'map', 'test_3.png'))
     #grid = 1 - grid  # revert pixel values
     planner = CoveragePlanner(grid)
-    planner.add_agents(4)
+    planner.add_agents(NUM_AGENTS)
 
     planner.start()
     paths = []
