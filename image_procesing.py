@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 # Load the image
-image = cv2.imread('garden.png')
+image = cv2.imread('garden_fixed.png')
 
 if image is None:
     print("Image not found or could not be loaded.")
@@ -19,18 +19,22 @@ else:
     lower_yellow = np.array([20, 100, 100])
     upper_yellow = np.array([40, 255, 255])
 
+    lower_brown = np.array([10, 50, 50])  # Lower HSV values for brown
+    upper_brown = np.array([30, 255, 255])  # Upper HSV values for brown
+
     # Create masks to isolate all shades of green and yellow
     green_mask = cv2.inRange(hsv_image, lower_green, upper_green)
     yellow_mask = cv2.inRange(hsv_image, lower_yellow, upper_yellow)
+    brown_mask = cv2.inRange(hsv_image, lower_yellow, upper_yellow)
 
     # Combine the masks to detect all shades of green and yellow
     combined_mask = cv2.bitwise_or(green_mask, yellow_mask)
+    combined_mask = cv2.bitwise_or(combined_mask, brown_mask)
 
     # Invert the mask so that all shades of green and yellow become white (1) and the rest becomes black (0)
     kernel = np.ones((7, 7), np.uint8)
     combined_mask2 = cv2.erode(combined_mask, kernel, iterations=0)
-    
-    
+
     inverted_mask = cv2.bitwise_not(combined_mask2)
 
     # Erode the mask to ignore single pixels

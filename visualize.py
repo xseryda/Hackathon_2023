@@ -22,7 +22,6 @@ def visualize_agent_path(grid_image, path, color='blue', transparency=1):
     for i in range(len(path)):
         path[i] = [int(path[i][1] * rescale_y), int(path[i][0] * rescale_x)]
 
-
     # Draw the semi-transparent path with the specified color on the overlay image
     for i in range(1, len(path)):
         cv2.line(overlay_image, path[i - 1], path[i], color, 2)
@@ -50,8 +49,10 @@ if __name__ == "__main__":
     grid_image_path = 'garden.png'
     # Load the grid image
     grid_image = cv2.imread(grid_image_path)
-    with open("paths_2.json") as f:
+    with open("paths.json") as f:
         paths = json.load(f)
+
+    grid = np.load('grid_color.npy')
 
     # Specify the color when calling the function ('blue', 'orange', 'green', 'red', or 'black')
 
@@ -59,11 +60,10 @@ if __name__ == "__main__":
     for idx, path in enumerate(paths):
         grid_image = visualize_agent_path(grid_image, path, color=colors[idx])
 
-    grid = np.load('grid_color.npy')
-
     result_image = visualize_divided_grid(grid_image, grid, 4, 0.3)
 
-    result_image = cv2.resize(result_image, [1300, 600])
+    # result_image = cv2.resize(result_image, [1300, 600])
+    cv2.imwrite('result_image.jpg', result_image)
     cv2.imshow('Agent Path', result_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()

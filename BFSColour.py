@@ -1,3 +1,4 @@
+from queue import Queue
 import numpy as np
 
 
@@ -7,34 +8,34 @@ class BFSColour:
 
     def divide_grid(self, starts):
         def get_neighbours(node):
-            neighbours = []
             if node[0] > 0:
-                neighbours.append((node[0] - 1, node[1]))
+                yield node[0] - 1, node[1]
             if node[1] > 0:
-                neighbours.append((node[0], node[1] - 1))
+                yield node[0], node[1] - 1
             if node[0] < self.grid.shape[0] - 1:
-                neighbours.append((node[0] + 1, node[1]))
+                yield node[0] + 1, node[1]
             if node[1] < self.grid.shape[1] - 1:
-                neighbours.append((node[0], node[1] + 1))
-            return neighbours
+                yield node[0], node[1] + 1
 
         agents = list(range(len(starts)))
         closed_nodes = []
         open_nodes = []
         cost = np.copy(self.grid) * self.grid.size
-        divided_grid = np.copy(self.grid) * self.grid.size
+        divided_grid = np.zeros(self.grid.shape)
         for idx, start in enumerate(starts, start=1):
-            open_nodes.append([start])
+            q = Queue()
+            q.put(start)
+            open_nodes.append(q)
             cost[start] = 0
             divided_grid[start] = idx
 
-        while any(open_nodes):
+        while agents:
             for i in agents:
-                if not open_nodes[i]:
+                if open_nodes[i].empty():
                     print(f"Agent {i + 1} finished")
                     agents.remove(i)
                     continue
-                current = open_nodes[i].pop(0)
+                current = open_nodes[i].get()
                 closed_nodes.append(current)
                 for neighbour in get_neighbours(current):
                     if neighbour in closed_nodes:
@@ -42,10 +43,9 @@ class BFSColour:
                     if divided_grid[neighbour] != i and self.grid[neighbour] != 0:
                         continue  # move only on dedicated cells or non-mowed cells
                     neighbour_cost = cost[current] + 1
-                    if neighbour not in open_nodes[i]:
-                        open_nodes[i].append(neighbour)
-                    elif bool(neighbour_cost >= cost[neighbour] != 0):
+                    if bool(neighbour_cost >= cost[neighbour] != 0):
                         continue
+                    open_nodes[i].put(neighbour)
                     divided_grid[neighbour] = i + 1
                     cost[neighbour] = neighbour_cost
 
@@ -55,4 +55,4 @@ class BFSColour:
 if __name__ == '__main__':
     image = np.load('grid_image.npy')
     a_star = BFSColour(image)
-    print(a_star.divide_grid([(0, 0), (0, 299), (199, 0), (199, 299)]))
+    np.save('grid_image_color.npy', a_star.divide_grid([(0, 0), (0, 299), (199, 0), (199, 299)]))
