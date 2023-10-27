@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 
-def visualize_agent_path(grid_image_path, start, end, path_points, color='blue', transparency=0.5):
+def visualize_agent_path(grid_image_path, path, color='blue', transparency=0.5):
     # Load the grid image
     grid_image = cv2.imread(grid_image_path)
 
@@ -11,15 +11,6 @@ def visualize_agent_path(grid_image_path, start, end, path_points, color='blue',
 
     # Create a transparent overlay image
     overlay_image = grid_image.copy()
-
-    # Create a list of points representing the agent's path
-    path = [(start[0], start[1])]
-
-    # Sample path points (you should replace this with your multi-path planning logic)
-    for i in range(1, path_points + 1):
-        x = int(start[0] + (end[0] - start[0]) * i / path_points)
-        y = int(start[1] + (end[1] - start[1]) * i / path_points)
-        path.append((x, y))
 
     # Define color mappings
     color_mapping = {
@@ -49,16 +40,22 @@ def visualize_agent_path(grid_image_path, start, end, path_points, color='blue',
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
+
 # Example of how to call the function with different colors:
-#if __name__ == "__main__":
-#    grid_image_path = 'garden.png'
-#    start_point = (10, 10)
-#    end_point = (1000, 1000)
-#    path_points = 100
+if __name__ == "__main__":
+    grid_image_path = 'garden.png'
+    start_point = (10, 10)
+    end_point = (1000, 1000)
+    path_points = 100
+
+    # Create a list of points representing the agent's path
+    path = [(start_point[0], start_point[1])]
+    
+    # Sample path points (you should replace this with your multi-path planning logic)
+    for i in range(1, path_points + 1):
+        x = int(start_point[0] + (end_point[0] - start_point[0]) * i / path_points)
+        y = int(start_point[1] + (end_point[1] - start_point[1]) * i / path_points)
+        path.append((x, y))
 
     # Specify the color when calling the function ('blue', 'orange', 'green', 'red', or 'black')
-    #visualize_agent_path(grid_image_path, start_point, end_point, path_points, color='blue')
-    #visualize_agent_path(grid_image_path, start_point, end_point, path_points, color='orange')
-    #visualize_agent_path(grid_image_path, start_point, end_point, path_points, color='green')
-    #visualize_agent_path(grid_image_path, start_point, end_point, path_points, color='red')
-    #visualize_agent_path(grid_image_path, start_point, end_point, path_points, color='black')
+    visualize_agent_path(grid_image_path, path, color='blue')
