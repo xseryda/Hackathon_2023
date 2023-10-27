@@ -7,6 +7,7 @@ from BFS import BFS
 
 
 DRAW_STEP = 100
+NUM_AGENTS = 4
 
 
 class GrassState:
@@ -94,12 +95,13 @@ class CoveragePlanner:
     def agents(self):
         return self._agents
 
-    def add_agent(self):
-        agent_id = len(self._agents) + 1
-        i_ind, j_ind = (self._grid == agent_id).nonzero()
-        j_min = j_ind.argmin()
-        i, j = int(i_ind[j_min]), int(j_ind[j_min])  # start with position where j minial
-        self._agents.append(Agent(agent_id, self._grid, i, j))
+    def add_agents(self, count):
+        for counter in range(count):
+            agent_id = len(self._agents) + 1
+            i_ind, j_ind = (self._grid == agent_id).nonzero()
+            j_min = j_ind.argmin()
+            i, j = int(i_ind[j_min]), int(j_ind[j_min])  # start with position where j minial
+            self._agents.append(Agent(agent_id, self._grid, i, j))
 
     def start(self):
         unique, counts = np.unique(self._grid, return_counts=True)
@@ -137,14 +139,11 @@ class CoveragePlanner:
 
 
 def main():
-    grid = np.load('grid_color.npy')
+    grid = np.load(f'grid_color_{NUM_AGENTS}.npy')
     #grid = plt.imread(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'map', 'test_3.png'))
     #grid = 1 - grid  # revert pixel values
     planner = CoveragePlanner(grid)
-    planner.add_agent()
-    planner.add_agent()
-    planner.add_agent()
-    planner.add_agent()
+    planner.add_agents(4)
 
     planner.start()
     paths = []

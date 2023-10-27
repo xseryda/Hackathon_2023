@@ -61,13 +61,14 @@ if __name__ == '__main__':
     grid = cv2.cvtColor(grid, cv2.COLOR_BGR2GRAY)
     a_star = BFSColour(grid)
 
-    agents = [(0, 0), (0, 150), (0, 299), (199, 0), (199, 150), (199, 299)]
+    #agents = [(0, 0), (0, 150), (0, 299), (199, 0), (199, 150), (199, 299)]
+    agents = [(0, 0), (0, 299), (199, 0), (199, 299)]
     result = a_star.divide_grid(agents)
 
     img = plt.imshow(result)
 
     result[result == 0] = len(agents) + 1
     result[result == 60000] = 0
-    np.save('grid_color_6.npy', result)
+    np.save(f'grid_color_{len(agents)}.npy', result)
 
     plt.savefig('test.png')
