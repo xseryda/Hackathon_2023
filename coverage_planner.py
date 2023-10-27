@@ -18,7 +18,7 @@ class Agent:
         self._bfs = BFS(grid)
         self._id = agent_id
         self._grid = grid
-        self._path = []
+        self._path = [(i, j)]
         self._i = i
         self._j = j
         self._unmowed = 0
@@ -94,9 +94,12 @@ class CoveragePlanner:
     def agents(self):
         return self._agents
 
-    def add_agent(self, i, j):
+    def add_agent(self):
         agent_id = len(self._agents) + 1
-        self._agents.append(Agent(agent_id, self._grid, i+1, j+1))
+        i_ind, j_ind = (self._grid == agent_id).nonzero()
+        j_min = j_ind.argmin()
+        i, j = int(i_ind[j_min]), int(j_ind[j_min])  # start with position where j minial
+        self._agents.append(Agent(agent_id, self._grid, i, j))
 
     def start(self):
         unique, counts = np.unique(self._grid, return_counts=True)
@@ -129,6 +132,7 @@ class CoveragePlanner:
                     agent.set_position(i, j)
                     if step % DRAW_STEP == 0:
                         img.set_data(self._grid[1:-1, 1:-1])
+                        # plt.savefig(f'pictures/{step:06d}.png')
                         plt.pause(0.01)
 
 
@@ -137,10 +141,10 @@ def main():
     #grid = plt.imread(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'map', 'test_3.png'))
     #grid = 1 - grid  # revert pixel values
     planner = CoveragePlanner(grid)
-    planner.add_agent(0, 0)
-    planner.add_agent(0, 299)
-    planner.add_agent(199, 0)
-    planner.add_agent(199, 299)
+    planner.add_agent()
+    planner.add_agent()
+    planner.add_agent()
+    planner.add_agent()
 
     planner.start()
     paths = []
