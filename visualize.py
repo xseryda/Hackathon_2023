@@ -9,7 +9,9 @@ color_mapping = {
     'orange': (0, 115, 255),
     'green': (0, 255, 0),
     'red': (0, 0, 255),
-    'black': (0, 0, 0)
+    'purple': (0, 255, 255),
+    'cyan': (255, 0, 255),
+    'black': (1, 1, 1)
 }
 
 
@@ -33,11 +35,11 @@ def visualize_agent_path(grid_image, path, color='blue', transparency=1):
 def visualize_divided_grid(image, grid, no_agents, transparency=0.5):
     mask = np.zeros((*grid.shape, 3), dtype=np.uint8)
 
-    mask[grid == 0] = color_mapping['black']
+    # mask[grid == 0] = color_mapping['black']
     colors = list(color_mapping.values())
     for i in range(no_agents):
         mask[grid == i + 1] = colors[i]
-    mask[grid == no_agents + 1] = color_mapping['black']
+    # mask[grid == no_agents + 1] = color_mapping['black']
 
     mask = cv2.resize(mask, [image.shape[1], image.shape[0]])
     # Apply the mask to the image using alpha blending
@@ -52,7 +54,7 @@ if __name__ == "__main__":
     with open("paths.json") as f:
         paths = json.load(f)
 
-    grid = np.load('grid_color.npy')
+    grid = np.load('grid_color_6.npy')
 
     # Specify the color when calling the function ('blue', 'orange', 'green', 'red', or 'black')
 
@@ -60,10 +62,10 @@ if __name__ == "__main__":
     for idx, path in enumerate(paths):
         grid_image = visualize_agent_path(grid_image, path, color=colors[idx])
 
-    result_image = visualize_divided_grid(grid_image, grid, 4, 0.3)
+    result_image = visualize_divided_grid(grid_image, grid, 6, 0.3)
 
     # result_image = cv2.resize(result_image, [1300, 600])
-    cv2.imwrite('result_image.jpg', result_image)
+    cv2.imwrite('result_image_6.jpg', result_image)
     cv2.imshow('Agent Path', result_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
