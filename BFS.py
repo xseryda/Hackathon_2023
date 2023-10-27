@@ -40,7 +40,9 @@ class BFS:
             for neighbour in get_neighbours(current):
                 if neighbour in closed_nodes:
                     continue
-                if abs(self.grid[neighbour]) != target and self.grid[neighbour] != 0:
+                if self.grid[neighbour] == 0:  # going through obstacle
+                    continue
+                if abs(self.grid[neighbour]) != target:
                     continue  # move only on dedicated cells or non-mowed cells
                 neighbour_cost = cost[current] + 1
                 if neighbour not in open_nodes:
@@ -54,7 +56,9 @@ class BFS:
 
 
 if __name__ == '__main__':
-    image = np.load('grid_image.npy')
-    image[(199, 299)] = 2
-    a_star = BFS(image)
-    print(a_star.find_path((0, 0), 2))
+    image = np.load('grid_bug.npy')
+    # image[(199, 299)] = 2
+    bfs = BFS(image)
+    path = bfs.find_path((103, 166), 2)
+    for point in path:
+        print(image[point[0], point[1]])
