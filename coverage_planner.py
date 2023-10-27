@@ -1,3 +1,5 @@
+import json
+
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -36,6 +38,10 @@ class Agent:
     @property
     def j(self):
         return self._j
+
+    @property
+    def path(self):
+        return self._path
 
     @property
     def unmowed(self):
@@ -83,6 +89,10 @@ class CoveragePlanner:
         self._grid = np.pad(grid, 1, constant_values=GrassState.OBSTACLE)
         self._unmowed = None
         self._path = []
+
+    @property
+    def agents(self):
+        return self._agents
 
     def add_agent(self, i, j):
         agent_id = len(self._agents) + 1
@@ -133,6 +143,12 @@ def main():
     planner.add_agent(199, 299)
 
     planner.start()
+    paths = []
+    for agent in planner.agents:
+        print(len(agent.path))
+        paths.append(agent.path)
+    with open('paths.json', 'w') as f:
+        json.dump(paths, f)
 
 
 if __name__ == '__main__':
