@@ -39,7 +39,7 @@ class BFSColour:
                 for neighbour in get_neighbours(current):
                     if neighbour in closed_nodes:
                         continue
-                    if divided_grid[neighbour] != i and self.grid[neighbour] != 0:
+                    if divided_grid[neighbour] != 0:  # already assigned or obstacle
                         continue  # move only on dedicated cells or non-mowed cells
                     neighbour_cost = cost[current] + 1
                     if neighbour not in open_nodes[i]:
@@ -53,6 +53,21 @@ class BFSColour:
 
 
 if __name__ == '__main__':
-    image = np.load('grid_image.npy')
-    a_star = BFSColour(image)
-    print(a_star.divide_grid([(0, 0), (0, 299), (199, 0), (199, 299)]))
+    #image = np.load('grid_image.npy')
+    import matplotlib.pyplot as plt
+    import cv2
+
+    grid = plt.imread('res/grid_image_red.png')
+    grid = cv2.cvtColor(grid, cv2.COLOR_BGR2GRAY)
+    a_star = BFSColour(grid)
+
+    agents = [(0, 0), (0, 150), (0, 299), (199, 0), (199, 150), (199, 299)]
+    result = a_star.divide_grid(agents)
+
+    img = plt.imshow(result)
+
+    result[result == 0] = len(agents) + 1
+    result[result == 60000] = 0
+    np.save('grid_color_6.npy', result)
+
+    plt.savefig('test.png')
