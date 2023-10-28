@@ -47,7 +47,7 @@ def visualize_divided_grid(image, grid, no_agents, transparency=0.5):
 
 # Example of how to call the function with different colors:
 if __name__ == "__main__":
-    grid_image_path = 'garden.png'
+    grid_image_path = 'res/garden.png'
     # Load the grid image
     grid_image = cv2.imread(grid_image_path)
     with open("paths.json") as f:
@@ -59,11 +59,11 @@ if __name__ == "__main__":
     for idx, path in enumerate(paths):
         grid_image = visualize_agent_path(grid_image, path, color=colors[idx])
 
-    grid = np.load('grid_color_6.npy')
+    grid = np.load('grid_color_4.npy')
 
     result_image = visualize_divided_grid(grid_image, grid, 4, 0.3)
 
-    result_image = cv2.resize(result_image, [1300, 600])
+    result_image = cv2.resize(result_image, [1800, 1200])
     cv2.imshow('Agent Path', result_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()

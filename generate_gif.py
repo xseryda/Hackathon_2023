@@ -7,4 +7,4 @@ images = []
 for filename in sorted(os.listdir('pictures')):
     print(filename)
     images.append(imageio.v2.imread(f'pictures/{filename}'))
-imageio.mimsave('mowing.gif', images)
+imageio.mimsave('mowing.gif', images, fps=50)
