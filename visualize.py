@@ -50,7 +50,7 @@ if __name__ == "__main__":
     grid_image_path = 'garden.png'
     # Load the grid image
     grid_image = cv2.imread(grid_image_path)
-    with open("paths_2.json") as f:
+    with open("paths.json") as f:
         paths = json.load(f)
 
     # Specify the color when calling the function ('blue', 'orange', 'green', 'red', or 'black')
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     for idx, path in enumerate(paths):
         grid_image = visualize_agent_path(grid_image, path, color=colors[idx])
 
-    grid = np.load('grid_color.npy')
+    grid = np.load('grid_color_6.npy')
 
     result_image = visualize_divided_grid(grid_image, grid, 4, 0.3)
 
