@@ -60,10 +60,17 @@ class Directions:
 
 class Skeleton:
     def __init__(self, cs_graph, height_red, width_red):
+        """
+        Matrix lower triangular, check only lower triangle (i > j).
+        """
         self._h_red = height_red
         self._w_red = width_red
         self._cs_graph = cs_graph
         self._last_direction = None
+
+    @property
+    def cs_graph(self):
+        return self._cs_graph
 
     def _get_directions(self, i_red, j_red):
         directions = []
@@ -71,42 +78,53 @@ class Skeleton:
         cs_ind = i_red * self._w_red + j_red
         if j_red > 0 and self._cs_graph[cs_ind, cs_ind - 1]:
              directions.append(Directions.LEFT)
-        if j_red < self._w_red - 1 and self._cs_graph[cs_ind, cs_ind + 1]:
+        if j_red < self._w_red - 1 and self._cs_graph[cs_ind + 1, cs_ind]:
              directions.append(Directions.RIGHT)
         if i_red > 0 and self._cs_graph[cs_ind, cs_ind - self._w_red]:
              directions.append(Directions.UP)
-        if i_red < self._h_red - 1 and self._cs_graph[cs_ind, cs_ind + self._w_red]:
+        if i_red < self._h_red - 1 and self._cs_graph[cs_ind + self._w_red, cs_ind]:
              directions.append(Directions.DOWN)
         return directions
 
     def direction(self, grid_i, grid_j):
         i_red, j_red = grid_i // 2, grid_j // 2
         directions = self._get_directions(i_red, j_red)  # TODO matrix is nonsymetric
-        for direction in directions:
-            if direction != Directions.reverse(direction):  # do not return back
-                self._last_direction = direction
-                return direction
-        return directions[0]  # TODO
+        # print(directions)
+        if self._last_direction is None:
+            preferences = [Directions.LEFT, Directions.DOWN, Directions.RIGHT, Directions.UP]
+        elif self._last_direction == Directions.DOWN:
+            preferences = [Directions.LEFT, Directions.DOWN, Directions.RIGHT, Directions.UP]
+        elif self._last_direction == Directions.UP:
+            preferences = [Directions.RIGHT, Directions.UP, Directions.LEFT, Directions.DOWN]
+        elif self._last_direction == Directions.LEFT:
+            preferences = [Directions.UP, Directions.LEFT, Directions.DOWN, Directions.RIGHT]
+        else:  # right
+            preferences = [Directions.DOWN, Directions.RIGHT, Directions.UP, Directions.LEFT]
+        for preference in preferences:
+            if preference in directions:
+                self._last_direction = preference
+                return preference
+        raise ValueError
         
 
 def plot_skelet(grid, cs_skelet):
     height_red, width_red = grid.shape[0] // 2, grid.shape[1] // 2
-    grid_image_path = 'garden.png'
+    grid_image_path = 'res/garden.png'
     # Load the grid image
     grid_image = cv2.imread(grid_image_path)
 
     rescale_x = grid_image.shape[0] / 100
     rescale_y = grid_image.shape[1] / 150
     drawn = 0
-    for i, j in zip(*cs_skelet.nonzero()):
+    for i, j in zip(*cs_skelet.cs_graph.nonzero()):
         drawn += 1
         #if drawn > 100:
         #    break
         i_start, j_start = int(rescale_y*(i // width_red)), int(rescale_x*(i % width_red))
         i_end, j_end = int(rescale_y*(j // width_red)), int(rescale_x*(j % width_red))
         cv2.line(grid_image, (j_start, i_start), (j_end, i_end), (255, 0, 0), 2)
-    result_image = cv2.resize(grid_image, [1300, 600])
-    cv2.imshow('Agent Path', result_image)
+    # result_image = cv2.resize(grid_image, [1300, 600])
+    cv2.imshow('Agent Path', grid_image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
@@ -114,7 +132,7 @@ def plot_skelet(grid, cs_skelet):
 def main():
     grid = np.load(f'grid_color_{NUM_AGENTS}.npy')
     cs_skelet = generate_skeleton(grid, 1)
-    # plot_skelet(grid, cs_skelet)
+    plot_skelet(grid, cs_skelet)
     #with open('skelets.pkl', 'wb') as f:
     #    pickle.dump([cs_skelet], f)
 

@@ -7,7 +7,7 @@ from BFS import BFS
 from skeleton import generate_skeleton, Directions
 
 
-DRAW_STEP = 1
+DRAW_STEP = 10
 NUM_AGENTS = 4
 
 
@@ -19,6 +19,7 @@ class Agent:
     def __init__(self, agent_id, grid, skelet, i, j):
         self._bfs = BFS(grid)
         self._id = agent_id
+        self._last_direction = None
         self._grid = grid
         self._path = [(i, j)]
         self._skelet = skelet
@@ -61,6 +62,7 @@ class Agent:
     def move(self):
         def move_by_direction(direction):
             i, j = self.i + direction[0], self.j + direction[1]
+            # print(f'Move to {direction}, {i=}, {j=}')
             self._grid[i, j] = -self.id
             self.extend_path(i, j)
             self.set_position(i, j)
@@ -68,9 +70,30 @@ class Agent:
         if not self.active:
             return
 
-        skeleton_direction = self._skelet.direction(self.i, self.j)
-        move_by_direction(skeleton_direction)
-        move_by_direction(skeleton_direction)
+        skeleton_direction = self._skelet.direction(self.i - 1, self.j - 1)  # -1 to acount for padding
+        if self._last_direction is None or self._last_direction == skeleton_direction:
+            move_by_direction(skeleton_direction)
+            move_by_direction(skeleton_direction)
+        elif self._last_direction == Directions.reverse(skeleton_direction):  # wraparound, trace branch back
+            move_by_direction(self._last_direction)
+            if skeleton_direction in (Directions.UP, Directions.DOWN):
+                move_by_direction(Directions.LEFT if (self.j - 1) % 2 else Directions.RIGHT)
+            else:
+                move_by_direction(Directions.UP if (self.i - 1) % 2 else Directions.DOWN)
+            move_by_direction(skeleton_direction)
+            move_by_direction(skeleton_direction)
+        else:  # corner turn
+            if (skeleton_direction == Directions.RIGHT and (self.j - 1) % 2 == 0 or
+                    skeleton_direction == Directions.LEFT and (self.j - 1) % 2 == 1 or
+                    skeleton_direction == Directions.DOWN and (self.i - 1) % 2 == 0 or
+                    skeleton_direction == Directions.UP and (self.i - 1) % 2 == 1):  # long turn
+                move_by_direction(self._last_direction)
+                move_by_direction(skeleton_direction)
+                move_by_direction(skeleton_direction)
+            else:  # short turn
+                move_by_direction(skeleton_direction)
+        self._last_direction = skeleton_direction
+
 
         return None
 
@@ -102,13 +125,14 @@ class CoveragePlanner:
     def agents(self):
         return self._agents
 
-    def add_agents(self, count, skelets):
+    def add_agents(self, count):
         for counter in range(count):
             agent_id = len(self._agents) + 1
             i_ind, j_ind = (self._grid == agent_id).nonzero()
             j_min = j_ind.argmin()
             i, j = int(i_ind[j_min]), int(j_ind[j_min])  # start with position where j minial
-            self._agents.append(Agent(agent_id, self._grid, skelets[counter], i, j))
+            skelet = generate_skeleton(self._grid[1:-1, 1:-1], 1)
+            self._agents.append(Agent(agent_id, self._grid, skelet, i, j))
 
     def start(self):
         unique, counts = np.unique(self._grid, return_counts=True)
@@ -134,11 +158,10 @@ class CoveragePlanner:
 
 def main():
     grid = np.load(f'grid_color_{NUM_AGENTS}.npy')
-    skelet = generate_skeleton(grid, 1)
     #grid = plt.imread(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'map', 'test_3.png'))
     #grid = 1 - grid  # revert pixel values
     planner = CoveragePlanner(grid)
-    planner.add_agents(1, [skelet])
+    planner.add_agents(1)
 
     planner.start()
     paths = []
