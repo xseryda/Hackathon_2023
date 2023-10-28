@@ -111,9 +111,9 @@ class Skeleton:
     def direction(self, grid_i, grid_j):
         i_red, j_red = grid_i // 2, grid_j // 2
         directions = self._get_directions(i_red, j_red)
-        print(directions)
+        # print(directions)
         if self._last_direction is None:
-            preferences = [Directions.LEFT, Directions.DOWN, Directions.RIGHT, Directions.UP]
+            preferences = [Directions.DOWN, Directions.RIGHT]
         elif self._last_direction == Directions.DOWN:
             preferences = [Directions.LEFT, Directions.DOWN, Directions.RIGHT, Directions.UP]
         elif self._last_direction == Directions.UP:
@@ -135,8 +135,8 @@ def plot_skelet(grid, cs_skelet):
     # Load the grid image
     grid_image = cv2.imread(grid_image_path)
 
-    rescale_x = grid_image.shape[0] / 100
-    rescale_y = grid_image.shape[1] / 150
+    rescale_x = grid_image.shape[0] / height_red
+    rescale_y = grid_image.shape[1] / width_red
     drawn = 0
     for i, j in zip(*cs_skelet.cs_graph.nonzero()):
         drawn += 1
@@ -153,7 +153,7 @@ def plot_skelet(grid, cs_skelet):
 
 def main():
     grid = np.load(f'grid_color_{NUM_AGENTS}.npy')
-    cs_skelet = generate_skeleton(grid, 4)
+    cs_skelet = generate_skeleton(grid, 2)
     plot_skelet(grid, cs_skelet)
     #with open('skelets.pkl', 'wb') as f:
     #    pickle.dump([cs_skelet], f)

@@ -28,8 +28,8 @@ class Agent:
         self._unmowed = 0
 
     @property
-    def active(self):
-        return self._unmowed > 0
+    def finished(self):
+        return self._unmowed == 0
 
     @property
     def id(self):
@@ -60,18 +60,27 @@ class Agent:
         self._unmowed -= 1
 
     def move(self):
+        """
+        Move counterclockwise around the skeleton
+        """
         def move_by_direction(direction):
-            i, j = self.i + direction[0], self.j + direction[1]
-            print(f'{self.id=}: Move to {direction}, {i=}, {j=}')
-            self._grid[i, j] = -self.id
-            self.extend_path(i, j)
-            self.set_position(i, j)
+            if not self.finished:  # going around turns can cause going more than full lap
+                i, j = self.i + direction[0], self.j + direction[1]
+                # print(f'{self.id=}: Move to {direction}, {i=}, {j=}')
+                self._grid[i, j] = -self.id
+                self.extend_path(i, j)
+                self.set_position(i, j)
 
-        if not self.active:
+        if self.finished:
             return
 
         skeleton_direction = self._skelet.direction(self.i - 1, self.j - 1)  # -1 to acount for padding
-        if self._last_direction is None or self._last_direction == skeleton_direction:
+        if self._last_direction is None:
+            if skeleton_direction == Directions.RIGHT:
+                move_by_direction(Directions.DOWN)  # to go counterclockwise
+            move_by_direction(skeleton_direction)
+            move_by_direction(skeleton_direction)
+        elif self._last_direction == skeleton_direction:
             move_by_direction(skeleton_direction)
             move_by_direction(skeleton_direction)
         elif self._last_direction == Directions.reverse(skeleton_direction):  # wraparound, trace branch back
@@ -130,30 +139,29 @@ class CoveragePlanner:
             agent_id = len(self._agents) + 1
             i_ind, j_ind = (self._grid == agent_id).nonzero()
             j_min = j_ind.argmin()
-            i, j = int(i_ind[j_min]), int(j_ind[j_min])  # start with position where j minial
+            # j minimal, i minimal for that j given by how the algorithm works
+            i, j = int(i_ind[j_min]), int(j_ind[j_min])  # start with position where j minimal
             skelet = generate_skeleton(self._grid[1:-1, 1:-1], agent_id)
             self._agents.append(Agent(agent_id, self._grid, skelet, i, j))
 
     def start(self):
         unique, counts = np.unique(self._grid, return_counts=True)
-        self._unmowed = 0
         for i, agent in enumerate(self._agents, start=1):
-            agent.unmowed = counts[i]
-            self._unmowed += agent.unmowed
+            agent.unmowed = counts[i] - 1  # initial point in path, but not in unmowed
         img = plt.imshow(self._grid[1:-1, 1:-1], vmin=-len(self._agents),
                          vmax=len(self._agents) + 1)
-        step = 0
+        steps = 0
         while True:
+            if all(agent.finished for agent in self._agents):
+                print(f'Total {steps=}')
+                break
             for agent in self._agents:
-                if self._unmowed == 0:
-                    print('Finished')
-                    return
                 agent.move()
-                step += 1
-                if step % DRAW_STEP == 0:
-                    img.set_data(self._grid[1:-1, 1:-1])
-                    # plt.savefig(f'pictures/{step:06d}.png')
-                    plt.pause(0.01)
+            steps += 1
+            if steps % DRAW_STEP == 0:
+                img.set_data(self._grid[1:-1, 1:-1])
+                # plt.savefig(f'pictures/{steps:06d}.png')
+                plt.pause(0.01)
 
 
 def main():
@@ -161,7 +169,7 @@ def main():
     #grid = plt.imread(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'map', 'test_3.png'))
     #grid = 1 - grid  # revert pixel values
     planner = CoveragePlanner(grid)
-    planner.add_agents(2)
+    planner.add_agents(4)
 
     planner.start()
     paths = []
