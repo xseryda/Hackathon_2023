@@ -62,7 +62,7 @@ class Agent:
     def move(self):
         def move_by_direction(direction):
             i, j = self.i + direction[0], self.j + direction[1]
-            # print(f'Move to {direction}, {i=}, {j=}')
+            print(f'{self.id=}: Move to {direction}, {i=}, {j=}')
             self._grid[i, j] = -self.id
             self.extend_path(i, j)
             self.set_position(i, j)
@@ -131,7 +131,7 @@ class CoveragePlanner:
             i_ind, j_ind = (self._grid == agent_id).nonzero()
             j_min = j_ind.argmin()
             i, j = int(i_ind[j_min]), int(j_ind[j_min])  # start with position where j minial
-            skelet = generate_skeleton(self._grid[1:-1, 1:-1], 1)
+            skelet = generate_skeleton(self._grid[1:-1, 1:-1], agent_id)
             self._agents.append(Agent(agent_id, self._grid, skelet, i, j))
 
     def start(self):
@@ -161,7 +161,7 @@ def main():
     #grid = plt.imread(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'map', 'test_3.png'))
     #grid = 1 - grid  # revert pixel values
     planner = CoveragePlanner(grid)
-    planner.add_agents(1)
+    planner.add_agents(2)
 
     planner.start()
     paths = []

@@ -8,10 +8,14 @@ NUM_AGENTS = 4
 WEIGHT_HOR, WEIGHT_VER = 5, 1
 
 
-def generate_skeleton(grid: np.array, agent_id: int):
+def reduce_grid(grid, agent_id=0):
+    """
+    Get recuted grid by factor 2. If any cell in the reduced cell is obstacle, the whole new cell is marked as obstacle.
+    0 means obstacle
+    1 means free path
+    """
     height_red, width_red = grid.shape[0] // 2, grid.shape[1] // 2
     grid_red = np.zeros((height_red, width_red))
-    cs_graph = np.zeros((grid.size // 4, grid.size // 4))
     for i_red in range(height_red):
         for j_red in range(width_red):
             if grid[i_red * 2, j_red * 2] != agent_id:
@@ -23,6 +27,24 @@ def generate_skeleton(grid: np.array, agent_id: int):
             if grid[i_red * 2 + 1, j_red * 2 + 1] != agent_id:
                 continue
             grid_red[i_red, j_red] = 1
+    return grid_red
+
+
+def expand_grid(grid):
+    height_exp, width_exp = grid.shape[0] * 2, grid.shape[1] * 2
+    grid_exp = np.zeros((height_exp, width_exp))
+    for i in range(height_exp):
+        for j in range(width_exp):
+            grid_exp[i, j] = grid[i // 2, j // 2]
+    return grid_exp
+
+
+def generate_skeleton(grid: np.array, agent_id: int):
+    height_red, width_red = grid.shape[0] // 2, grid.shape[1] // 2
+    grid_red = reduce_grid(grid, agent_id)
+
+    cs_graph = np.zeros((grid.size // 4, grid.size // 4))
+
     for i_red in range(height_red):
         for j_red in range(width_red):
             if not grid_red[i_red, j_red]:
@@ -88,8 +110,8 @@ class Skeleton:
 
     def direction(self, grid_i, grid_j):
         i_red, j_red = grid_i // 2, grid_j // 2
-        directions = self._get_directions(i_red, j_red)  # TODO matrix is nonsymetric
-        # print(directions)
+        directions = self._get_directions(i_red, j_red)
+        print(directions)
         if self._last_direction is None:
             preferences = [Directions.LEFT, Directions.DOWN, Directions.RIGHT, Directions.UP]
         elif self._last_direction == Directions.DOWN:
@@ -131,7 +153,7 @@ def plot_skelet(grid, cs_skelet):
 
 def main():
     grid = np.load(f'grid_color_{NUM_AGENTS}.npy')
-    cs_skelet = generate_skeleton(grid, 1)
+    cs_skelet = generate_skeleton(grid, 4)
     plot_skelet(grid, cs_skelet)
     #with open('skelets.pkl', 'wb') as f:
     #    pickle.dump([cs_skelet], f)
